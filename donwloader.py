@@ -6,21 +6,93 @@ Created on 11 dic 2020
 '''
 from __future__ import unicode_literals
 import os
-# importing tkinter
-from tkinter import *
-from tkinter import ttk
+import time
+import threading
 # importing YouTube module
 import youtube_dl
+import ctypes
+import inspect
 from datetime import datetime
-import time
-from tkinter.ttk import Style
-import threading
-
+# importing tkinter
 import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+from tkinter.ttk import Style
 from tkinter import filedialog
 from tkinter import messagebox
 
 VERSION = '0.1'
+
+# dictionaries with all languages avaiable
+language = {
+    'ENG': {
+        'title': 'Yt Video Downloader',
+        'copy': 'copy',
+        'Copy': 'Copy',
+        'Paste': 'Paste',
+        'paste': 'paste',
+        'Cut': 'Cut',
+        'cut': 'cut',
+        'title_entry': 'Enter the Youtube links bellow',
+        'one_line': 'one link per line',
+        'save_title': 'Save videos in',
+        'browse': 'Browse',
+        'clear': 'Clear',
+        'start_download': 'Start download'
+    },
+    'ESP': {
+        'title': 'Yt Video Downloader',
+        'copy': 'copiar',
+        'Copy': 'Copiar',
+        'Paste': 'Pegar',
+        'paste': 'pegar',
+        'Cut': 'Cortar',
+        'cut': 'cortar',
+        'title_entry': 'Agrega los enlaces de Youtube aquí',
+        'one_line': 'un enlace por línea',
+        'save_title': 'Guardar videos en',
+        'browse': 'Busca',
+        'clear': 'Limpiar',
+        'start_download': 'Iniciar Descarga'
+    },
+    'PRT': {
+        'title': 'Yt Video Downloader',
+        'copy': 'copiar',
+        'Copy': 'Copiar',
+        'Paste': 'Colar',
+        'paste': 'colar',
+        'Cut': 'Recortar',
+        'cut': 'recortar',
+        'title_entry': 'Adicione os links do Youtube aqui',
+        'one_line': 'um link por linha',
+        'save_title': 'Salvar vídeos em',
+        'browse': 'Busca',
+        'clear': 'Limpar',
+        'start_download': 'Iniciar o download'
+    },
+    # TODO
+    'ITA': {
+        'title': 'Yt Video Downloader',
+        'copy': 'copia',
+        'Copy': 'Copia'
+
+    }
+
+}
+
+
+def _async_raise(tid, exctype):
+    """raises the exception, performs cleanup if needed"""
+    if not inspect.isclass(exctype):
+        raise TypeError("Only types can be raised (not instances)")
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(tid), ctypes.py_object(exctype))
+    if res == 0:
+        raise ValueError("invalid thread id")
+    elif res != 1:
+        # """if it returns a number greater than one, you're in trouble,
+        # and you should call it again with exc=NULL to revert the effect"""
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, 0)
+        raise SystemError("PyThreadState_SetAsyncExc failed")
 
 
 class DownloaderThread(threading.Thread):
@@ -33,24 +105,41 @@ class DownloaderThread(threading.Thread):
         self._stop_event = threading.Event()
         self.launched = True
 
-    def stop(self):
-        self._stop_event.set()
-
     def stopped(self):
         return self._stop_event.is_set()
 
-    def run(self):
-        while True:
-            if self.stopped():
-                return
-            if self.launched:
-                pass
+    def _get_my_tid(self):
+        """determines this (self's) thread id"""
+        if not self.is_alive():
+            raise threading.ThreadError("the thread is not active")
+
+        # do we have it cached?
+        if hasattr(self, "_thread_id"):
+            return self._thread_id
+
+        # no, look for it in the _active dict
+        for tid, tobj in threading._active.items():
+            if tobj is self:
+                self._thread_id = tid
+                return tid
+
+        raise AssertionError("could not determine the thread's id")
+
+    def raise_exc(self, exctype):
+        """raises the given exception type in the context of this thread"""
+        _async_raise(self._get_my_tid(), exctype)
+
+    def terminate(self):
+        """raises SystemExit in the context of the given thread, which should
+        cause the thread to exit silently (unless caught)"""
+        self._stop_event.set()
+        self.raise_exc(SystemExit)
 
 
 class Menubar:
 
     def __init__(self, parent):
-        font_specs = ('ubuntu', 11)
+        font_specs = ('consolas', 11)
 
         menubar = tk.Menu(parent.root, font=font_specs)
         parent.root.config(menu=menubar)
@@ -66,9 +155,22 @@ class Menubar:
         about_dropdown.add_separator()
         about_dropdown.add_command(label="About",
                                    command=self.show_about_message)
+        language_dropdown = tk.Menu(menubar, font=font_specs, tearoff=0)
+        language_dropdown.add_command(label="English",
+                                   command=self.change_language(parent, 'ENG'))
+        language_dropdown.add_command(label="Spanish",
+                                   command=self.change_language(parent, 'ESP'))
+        language_dropdown.add_command(label="Italian",
+                                      command=self.change_language(parent, 'ITA'))
+        language_dropdown.add_command(label="Portuguese",
+                                      command=self.change_language(parent, 'PRT'))
 
         menubar.add_cascade(label="App", menu=file_dropdown)
+        menubar.add_cascade(label="Language", menu=language_dropdown)
         menubar.add_cascade(label="About", menu=about_dropdown)
+
+    def change_language(self, parent, language):
+        parent.selected_language = language
 
     @staticmethod
     def show_about_message():
@@ -111,13 +213,18 @@ class ytDownloader:
     def __init__(self, _root):
         # start objects
         self.root = _root
+        self.selected_language = 'ENG'
         self.root.geometry("960x320")
-        self.root.title("Yt Video Downloader")
+        # self.root.title("Yt Video Downloader")
+        self.root.title((language[self.selected_language].get('title')))
         self.root.resizable(False, False)
         self.init_objects()
         self.v_counter = 0
         self.v_down = 0
-
+        self.context_menu = Menu(self.root, tearoff=0)
+        self.context_menu.add_command(label="Cut")
+        self.context_menu.add_command(label="Copy")
+        self.context_menu.add_command(label="Paste")
         self.downloading = False
         self.global_downloading = False
         self.ThreadLauncher = None
@@ -145,9 +252,7 @@ class ytDownloader:
             )
             if question:
                 # destroy thread runnning
-                if not self.ThreadLauncher.stopped():
-                    self.ThreadLauncher.stop()
-                self.root.destroy()
+                self.stop_download()
             else:
                 return None
         self.root.destroy()
@@ -159,7 +264,19 @@ class ytDownloader:
         self.v_counter = 0
         self.v_down = 0
 
+    def popup(self, event, element):
+        self.context_menu.post(event.x_root, event.y_root)
+        self.context_menu.entryconfigure("Cut", command=lambda: element.event_generate("<<Cut>>"))
+        self.context_menu.entryconfigure("Copy", command=lambda: element.event_generate("<<Copy>>"))
+        self.context_menu.entryconfigure("Paste", command=lambda: element.event_generate("<<Paste>>"))
+
     def init_objects(self):
+        def _redo(text_object):
+            var = text_object.edit_redo
+
+        def _undo(text_object):
+            var = text_object.edit_undo
+
         self.s = Style(self.root)
         self.s.theme_use('default')
         self.s.layout("LabeledProgressbar",
@@ -194,7 +311,12 @@ class ytDownloader:
         self.my_scroll = Scrollbar(self.my_frame, orient=VERTICAL)
         self.my_text = Text(
             self.my_frame, width=55, height=8, font=self.font_specs,
-            yscrollcommand=self.my_scroll.set)
+            yscrollcommand=self.my_scroll.set, undo=True)
+        self.my_text.bind('<Control-z>', _undo(self.my_text))
+        self.my_text.bind('<Control-y>', _redo(self.my_text))
+        self.my_text.bind("<Button-3>",
+                          lambda event, text_element=self.my_text:
+                          self.popup(event=event, element=text_element))
         self.my_scroll.config(command=self.my_text.yview)
         self.my_scroll.pack(side=RIGHT, fill=Y)
         self.my_frame.grid(row=3, column=0, padx=10)
@@ -230,7 +352,7 @@ class ytDownloader:
         self.search_frame = Frame(self.root)
         self.search_frame.grid(row=2, column=1, sticky='w', padx=10)
         self.path_saver = Entry(
-            self.search_frame, textvariable=self.save_path, width=50)
+            self.search_frame, textvariable=self.save_path, width=65)
         self.path_saver.grid(row=0, column=0, sticky='w')
         self.button2 = Button(
             self.search_frame, text="Browse", command=self.browse_button)
@@ -284,10 +406,18 @@ class ytDownloader:
             self.save_path.set(self.filename)
 
     def stop_download(self):
-        print(self.ThreadLauncher.stopped())
+        '''
+        stop download thread and reset all necesary values
+        '''
         if not self.ThreadLauncher.stopped():
-            print(self.ThreadLauncher.stop())
+            self.ThreadLauncher.terminate()
+        self.ThreadLauncher.join()
+        # reset values
+        self.global_downloading = False
         # set message download stopped
+        self.status_text.set('Download video stopped')
+        # hide stop button
+        self.stop_button1.grid_remove()
         return None
 
     def launch_down(self):
@@ -307,15 +437,12 @@ class ytDownloader:
             # global v_counter, v_down
             self.where_save = self.save_path.get()
             self.my_progress.grid_remove()
-            # print("path where to save %s" % self.where_save)
             download_options = {
                 'outtmpl': f'{self.where_save}\%(title)s.%(ext)s',
                 'getfilename': '--get-filename',
                 '--get-filename': True,
                 'progress_hooks': [self.my_hook],
             }
-            # myVar.set("Downloading...")
-            # root.update()
             list_links = self.my_text.get(1.0, END)
             list_down = list_links.splitlines()
             list_down = [line.rstrip('\n') for line in list_down]
@@ -329,13 +456,10 @@ class ytDownloader:
 
             self.v_counter = len(list_down)
             # check if empty list
-            # print(self.v_counter)
-            # print(list_down)
             if (self.v_counter == 0 or
                     (len(list_down) and list_down[0] == '')):
                 self.status_text.set("No videos to download")
                 return None
-            # print(list_links)
             with youtube_dl.YoutubeDL(download_options) as dl:
                 self.my_progress.grid()
                 self.stop_button1.grid()
@@ -343,8 +467,6 @@ class ytDownloader:
                 for video_link in list_down:
                     if video_link == '':
                         continue
-                    # create_progress(my_text1)
-                    # message_fin.set("")
                     self.v_down += 1
                     dl.download([video_link])
                 self.status_text.set(
@@ -353,20 +475,24 @@ class ytDownloader:
             self.stop_button1.grid_remove()
             # link.set("Video downloaded successfully")
         except RuntimeError as e:
-            # message_fin.set(e)
+            self.status_text.set(e)
             pass
         except Exception as e:
+            self.status_text.set(e)
+            self.global_downloading = False
+            # hide stop button
+            self.stop_button1.grid_remove()
             print(e)
-            # myVar.set("Mistake")
-            # root.update()
-            # message_fin.set("Error downloading Video")
             pass
-            # link.set("Enter correct link")
 
     def my_hook(self, d):
         try:
             # global percentage, curr_progress_bar
+            # tmpfilename
+            # here we should check if stop process is requested or not
             file_tuple = os.path.split(os.path.abspath(d['filename']))
+            # tmp_file_tuple = os.path.split(os.path.abspath(d['tmpfilename']))
+            # print(tmp_file_tuple)
             if not self.downloading:
                 self.my_text1.configure(state='normal')
                 self.my_text1.insert(
@@ -391,37 +517,20 @@ class ytDownloader:
                                  text=f"{self.my_progress['value']} %      ")
                 self.status_text.set(
                     f"Downloaded... [{self.v_down}/{self.v_counter}]")
-                # curr_progress_bar['value'] = 100
-                # curr_progress_text.config(
-                #    text=f"Downloaded... [{v_down}/{v_counter}] {curr_progress_bar['value']}% \n")
+                self.root.update_idletasks()
 
-                # print("Done downloading {}".format(file_tuple[1]))
             if d['status'] == 'downloading':
                 p = d['_percent_str']
                 p = p.replace('%', '')
-                # my_progress.setValue(float(p))
                 p = d['_percent_str']
                 p = p.replace('%', '')
-                # if float(p) >= percentage + 2:
                 percentage = float(p)
                 self.my_progress['value'] = percentage
-                # curr_progress_bar['value'] = percentage
-                # self.curr_progress_text.config(
-                #    text=f"Downloading... [{v_down}/{v_counter}] {curr_progress_bar['value']}%")
-                # self.percentage.config(
-                #    text=f"Downloading... {self.my_progress['value']}%")
                 self.status_text.set(
                     f"Downloading... [{self.v_down}/{self.v_counter}]")
                 self.s.configure("LabeledProgressbar",
                                  text=f"{self.my_progress['value']} %      ")
-                #    self.my_text1.configure(state='normal')
-                #    self.my_text1.insert('end', f"downloading {file_tuple[1]}")
-                #    self.my_text1.configure(state='disabled')
-
                 self.root.update_idletasks()
-                # print("down %s" % str())
-                # print(d['_percent_str'])
-                # print(d['filename'], d['_percent_str'], d['_eta_str'])
         except Exception as e:
             print(e)
 
