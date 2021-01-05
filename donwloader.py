@@ -20,13 +20,14 @@ from tkinter import ttk
 from tkinter.ttk import Style
 from tkinter import filedialog
 from tkinter import messagebox
+from pprint import pprint
 
 VERSION = '0.1'
 
 # dictionaries with all languages avaiable
 language = {
     'ENG': {
-        'title': 'Yt Video Downloader',
+        'title': 'Yt Video Downloader eng',
         'copy': 'copy',
         'Copy': 'Copy',
         'Paste': 'Paste',
@@ -41,7 +42,7 @@ language = {
         'start_download': 'Start download'
     },
     'ESP': {
-        'title': 'Yt Video Downloader',
+        'title': 'Yt Video Downloader esp',
         'copy': 'copiar',
         'Copy': 'Copiar',
         'Paste': 'Pegar',
@@ -74,11 +75,49 @@ language = {
     'ITA': {
         'title': 'Yt Video Downloader',
         'copy': 'copia',
-        'Copy': 'Copia'
+        'Copy': 'Copia',
+        'Paste': 'Incolla',
+        'paste': 'incolla',
+        'Cut': 'Taglia',
+        'cut': 'taglia',
+        'title_entry': 'Inserisci i link di Youtube qui',
+        'one_line': 'un link per riga',
+        'save_title': 'Salva i video in',
+        'browse': 'Cerca',
+        'clear': 'Pulisci',
+        'start_download': 'Inizia download'
 
     }
 
 }
+
+class Translator:
+
+    def __init__(self, languages):
+        # set default languagge
+        self.default_language = 'ENG'
+        self.current_language = self.default_language
+        # load dictionary to libs
+        self.languages = languages
+        # labels that change when update
+        self.list_labels = self.languages.get(self.default_language).items()
+        self.set_language(self.default_language)
+
+    def get_language(self, lang):
+        return self.languages[lang]
+
+    def set_language(self, lang):
+        # update current language
+        self.current_language = lang
+        # get labels for default label
+        items_for_curr = self.languages.get(lang)
+        for _label, _description in self.list_labels:
+            # get from the current language
+            new_value = items_for_curr.get(_label)
+            if new_value is None:
+                # use the desciption
+                new_value = _description
+            self.__setattr__(_label, new_value)
 
 
 def _async_raise(tid, exctype):
@@ -170,7 +209,8 @@ class Menubar:
         menubar.add_cascade(label="About", menu=about_dropdown)
 
     def change_language(self, parent, language):
-        parent.selected_language = language
+        parent.lang.set_language(language)
+        parent.root.update_idletasks()
 
     @staticmethod
     def show_about_message():
@@ -214,9 +254,10 @@ class ytDownloader:
         # start objects
         self.root = _root
         self.selected_language = 'ENG'
+        self.lang = Translator(language)
         self.root.geometry("960x320")
         # self.root.title("Yt Video Downloader")
-        self.root.title((language[self.selected_language].get('title')))
+        self.root.title(self.lang.title)
         self.root.resizable(False, False)
         self.init_objects()
         self.v_counter = 0
