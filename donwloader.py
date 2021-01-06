@@ -20,14 +20,13 @@ from tkinter import ttk
 from tkinter.ttk import Style
 from tkinter import filedialog
 from tkinter import messagebox
-from pprint import pprint
 
 VERSION = '0.1'
 
-# dictionaries with all languages avaiable
+# dictionaries with all languages available
 language = {
     'ENG': {
-        'title': 'Yt Video Downloader eng',
+        'title': 'Welcome to Youtube Video Downloader App',
         'copy': 'copy',
         'Copy': 'Copy',
         'Paste': 'Paste',
@@ -36,13 +35,27 @@ language = {
         'cut': 'cut',
         'title_entry': 'Enter the Youtube links bellow',
         'one_line': 'one link per line',
-        'save_title': 'Save videos in',
+        'save_title': 'Save videos in:',
         'browse': 'Browse',
         'clear': 'Clear',
-        'start_download': 'Start download'
+        'start_download': 'Start download',
+        'stop_download': 'Stop download',
+        'down_videos_stopped': 'Download stopped',
+        'running': 'Running',
+        'running_msg': 'The downloader app is already running',
+        'running_msg_1': 'The downloader app is running',
+        'url_invalid': 'Url not valid at line',
+        'no_videos': 'No videos to download',
+        'all_downloaded': 'All videos downloaded',
+        'starts_down_video': 'Video download starts',
+        'video_downloaded': 'Video downloaded',
+        'downloading': 'Downloading',
+        'downloaded': 'Downloaded',
+        'close_app': 'do you want to close the app?'
+
     },
     'ESP': {
-        'title': 'Yt Video Downloader esp',
+        'title': 'Welcome to Youtube Video Downloader App',
         'copy': 'copiar',
         'Copy': 'Copiar',
         'Paste': 'Pegar',
@@ -51,13 +64,26 @@ language = {
         'cut': 'cortar',
         'title_entry': 'Agrega los enlaces de Youtube aquí',
         'one_line': 'un enlace por línea',
-        'save_title': 'Guardar videos en',
-        'browse': 'Busca',
+        'save_title': 'Guardar videos en:',
+        'browse': 'Buscar',
         'clear': 'Limpiar',
-        'start_download': 'Iniciar Descarga'
+        'start_download': 'Iniciar descarga',
+        'stop_download': 'Cancelar descarga',
+        'down_videos_stopped': 'Descarga cancelada',
+        'running': 'Descargando',
+        'running_msg': 'la aplicación ya se está ejecutando',
+        'running_msg_1': 'la aplicación se está ejecutando',
+        'url_invalid': 'Enlace no correcto en la línea',
+        'no_videos': 'No Hay videos para descargar',
+        'all_downloaded': 'Todos los videos descargados',
+        'starts_down_video': 'Empieza la descarga del video',
+        'video_downloaded': 'Video descargado',
+        'downloading': 'Descargando',
+        'downloaded': 'Descargado',
+        'close_app': 'quieres cerrar la aplicación?'
     },
     'PRT': {
-        'title': 'Yt Video Downloader',
+        'title': 'Welcome to Youtube Video Downloader App',
         'copy': 'copiar',
         'Copy': 'Copiar',
         'Paste': 'Colar',
@@ -66,14 +92,26 @@ language = {
         'cut': 'recortar',
         'title_entry': 'Adicione os links do Youtube aqui',
         'one_line': 'um link por linha',
-        'save_title': 'Salvar vídeos em',
+        'save_title': 'Salvar vídeos em:',
         'browse': 'Busca',
         'clear': 'Limpar',
-        'start_download': 'Iniciar o download'
+        'start_download': 'Iniciar o download',
+        'stop_download': 'Parar o download',
+        'down_videos_stopped': 'Download parado',
+        'running': 'Descarregando',
+        'running_msg': 'o aplicativo já está rodando',
+        'running_msg_1': 'o aplicativo está rodando',
+        'url_invalid': 'Link incorreto na linha',
+        'no_videos': 'Nenhum vídeo para baixar',
+        'all_downloaded': 'todos os vídeos baixados',
+        'starts_down_video': 'O download do vídeo começa',
+        'video_downloaded': 'Vídeo baixado',
+        'downloading': 'Baixando',
+        'downloaded': 'Baixado',
+        'close_app': 'quer fechar o aplicativo?'
     },
-    # TODO
     'ITA': {
-        'title': 'Yt Video Downloader',
+        'title': 'Welcome to Youtube Video Downloader App',
         'copy': 'copia',
         'Copy': 'Copia',
         'Paste': 'Incolla',
@@ -82,11 +120,23 @@ language = {
         'cut': 'taglia',
         'title_entry': 'Inserisci i link di Youtube qui',
         'one_line': 'un link per riga',
-        'save_title': 'Salva i video in',
+        'save_title': 'Salva i video in:',
         'browse': 'Cerca',
         'clear': 'Pulisci',
-        'start_download': 'Inizia download'
-
+        'start_download': 'Inizia download',
+        'stop_download': 'Ferma download',
+        'down_videos_stopped': 'Download fermato',
+        'running': 'Scaricando',
+        'running_msg': 'Il download dei video è già in corso',
+        'running_msg_1': 'Il download dei video è in corso',
+        'url_invalid': 'Link non corretto alla riga',
+        'no_videos': 'Nessun video da scaricare',
+        'all_downloaded': 'Tutti i video scaricati',
+        'starts_down_video': 'Inizia il download del video',
+        'video_downloaded': 'Video scaricato',
+        'downloading': 'Scaricando',
+        'downloaded': 'Scaricato',
+        'close_app': 'vuoi chiudere l''app?'
     }
 
 }
@@ -101,10 +151,31 @@ class Translator:
         self.languages = languages
         # labels that change when update
         self.list_labels = self.languages.get(self.default_language).items()
-        self.set_language(self.default_language)
 
-    def get_language(self, lang):
-        return self.languages[lang]
+        # vars for multi-language labels
+        self.title = ''
+        self.title_entry = ''
+        self.one_line = ''
+        self.clear = ''
+        self.start_download = ''
+        self.stop_download = ''
+        self.save_title = ''
+        self.browse = ''
+        self.down_videos_stopped = ''
+        self.running = ''
+        self.running_msg = ''
+        self.running_msg_1 = ''
+        self.url_invalid = ''
+        self.no_videos = ''
+        self.all_downloaded = ''
+        self.starts_down_video = ''
+        self.video_downloaded = ''
+        self.downloaded = ''
+        self.downloading = ''
+        self.close_app = ''
+
+        # setting labels with default language
+        self.set_language(self.default_language)
 
     def set_language(self, lang):
         # update current language
@@ -196,21 +267,17 @@ class Menubar:
                                    command=self.show_about_message)
         language_dropdown = tk.Menu(menubar, font=font_specs, tearoff=0)
         language_dropdown.add_command(label="English",
-                                   command=self.change_language(parent, 'ENG'))
+                                      command=lambda: parent.change_language('ENG'))
         language_dropdown.add_command(label="Spanish",
-                                   command=self.change_language(parent, 'ESP'))
+                                      command=lambda: parent.change_language('ESP'))
         language_dropdown.add_command(label="Italian",
-                                      command=self.change_language(parent, 'ITA'))
+                                      command=lambda: parent.change_language('ITA'))
         language_dropdown.add_command(label="Portuguese",
-                                      command=self.change_language(parent, 'PRT'))
+                                      command=lambda: parent.change_language('PRT'))
 
         menubar.add_cascade(label="App", menu=file_dropdown)
         menubar.add_cascade(label="Language", menu=language_dropdown)
         menubar.add_cascade(label="About", menu=about_dropdown)
-
-    def change_language(self, parent, language):
-        parent.lang.set_language(language)
-        parent.root.update_idletasks()
 
     @staticmethod
     def show_about_message():
@@ -256,8 +323,8 @@ class ytDownloader:
         self.selected_language = 'ENG'
         self.lang = Translator(language)
         self.root.geometry("960x320")
-        # self.root.title("Yt Video Downloader")
-        self.root.title(self.lang.title)
+        self.root.title("Yt Video Downloader")
+        # self.root.title(self.lang.title)
         self.root.resizable(False, False)
         self.init_objects()
         self.v_counter = 0
@@ -269,13 +336,12 @@ class ytDownloader:
         self.downloading = False
         self.global_downloading = False
         self.ThreadLauncher = None
-
-        # root is your root window
         self.root.protocol('WM_DELETE_WINDOW', self.prevent_close)
 
-        # def doSomething():
-        #    # check if saving
-        #    # if not:
+    def change_language(self, _language):
+        self.lang.set_language(_language)
+        self.set_values()
+        self.root.update_idletasks()
 
     def prevent_close(self):
         '''
@@ -285,9 +351,9 @@ class ytDownloader:
         _title = ''
         _message = ''
         if self.global_downloading:
-            _title = "App running"
-            _message = "The downloader is running"\
-                "\n do you want to close the app?"
+            _title = self.lang.running
+            _message = f"{self.lang.running_msg_1}"\
+                f"\n {self.lang.close_app}"
             question = messagebox.askyesno(
                 title=_title, message=_message
             )
@@ -334,18 +400,20 @@ class ytDownloader:
         self.link = StringVar()
         self.save_path = StringVar()
         self.save_path.set(os.path.expanduser('~/Downloads'))
-
+        self.title_var = StringVar()
         self.lb_title = Label(
-            self.root, text="Welcome to Youtube Video Downloader App",
+            self.root, textvariable=self.title_var,
             font="consolas 14 bold")
         self.lb_title.grid(row=0, column=0, columnspan=3, padx=(10, 20))
-
-        Label(
-            self.root, text="Enter the Youtube links bellow",
-            font="consolas 11").grid(row=1, column=0)
-        Label(
-            self.root, text="one link per line", font="Consolas 10").grid(
-            row=2, column=0)
+        self.d_descr_link = StringVar()
+        self.descr_link = Label(
+            self.root, textvariable=self.d_descr_link,
+            font="consolas 11")
+        self.descr_link.grid(row=1, column=0)
+        self.d_lab_one = StringVar()
+        self.lab_one = Label(
+            self.root, textvariable=self.d_lab_one, font="Consolas 10")
+        self.lab_one.grid(row=2, column=0)
 
         # frame for text wher put the links
         self.my_frame = Frame(self.root)
@@ -367,27 +435,31 @@ class ytDownloader:
         self.button_frame = Frame(self.root)
         self.button_frame.grid(row=4, column=0, padx=10, pady=10)
         # clear button
+        self.d_clear_button = StringVar()
         self.clear_button = Button(
-            self.button_frame, text="clear", command=self.clear_text)
+            self.button_frame, textvariable=self.d_clear_button,
+            command=self.clear_text)
         self.clear_button.grid(row=0, column=0, padx=10)
-
-        self.down_button1 = Button(
-            self.button_frame, text="Start download", command=self.launch_down,
-            fg="blue")
-        self.down_button1.grid(row=0, column=1, padx=10)
+        self.d_start_down_btn = StringVar()
+        self.start_down_btn = Button(
+            self.button_frame, textvariable=self.d_start_down_btn,
+            command=self.launch_down, fg="blue")
+        self.start_down_btn.grid(row=0, column=1, padx=10)
 
         #stop button
         self.button_frame1 = Frame(self.root)
         self.button_frame1.grid(row=4, column=1, padx=10, pady=10)
-        self.stop_button1 = Button(
-            self.button_frame1, text="Stop download", command=self.stop_download,
+        self.d_stop_button = StringVar()
+        self.stop_button = Button(
+            self.button_frame1, textvariable=self.d_stop_button, command=self.stop_download,
             fg="red")
-        self.stop_button1.grid(row=0, column=0, padx=10)
-        self.stop_button1.grid_remove()
-
-        Label(
-            self.root, text="Save videos in:",
-            font="Consolas 11").grid(row=1, column=1)
+        self.stop_button.grid(row=0, column=0, padx=10)
+        self.stop_button.grid_remove()
+        self.d_lb_save_in = StringVar()
+        self.lb_save_in = Label(
+            self.root, textvariable=self.d_lb_save_in,
+            font="Consolas 11")
+        self.lb_save_in.grid(row=1, column=1)
 
         # frame for path and button
         self.search_frame = Frame(self.root)
@@ -395,9 +467,11 @@ class ytDownloader:
         self.path_saver = Entry(
             self.search_frame, textvariable=self.save_path, width=65)
         self.path_saver.grid(row=0, column=0, sticky='w')
-        self.button2 = Button(
-            self.search_frame, text="Browse", command=self.browse_button)
-        self.button2.grid(row=0, column=1)
+        self.d_brownse_btn = StringVar()
+        self.browse_btn = Button(
+            self.search_frame, textvariable=self.d_brownse_btn,
+            command=self.browse_button)
+        self.browse_btn.grid(row=0, column=1)
 
         # adding status frame
         self.status_frame = Frame(self.root, bd=1, relief=SUNKEN)
@@ -425,7 +499,7 @@ class ytDownloader:
 
         self.my_text1 = Text(
             self.deb_frame, state='disabled', width=55, height=8,
-            yscrollcommand=self.scr_deb.set, bg="lightgrey")
+            yscrollcommand=self.scr_deb.set, bg="white")
         self.scr_deb.config(command=self.my_text1.yview)
         self.scr_deb.pack(side=RIGHT, fill=Y)
         self.deb_frame.grid(row=3, column=1, columnspan=2, padx=10)
@@ -434,6 +508,25 @@ class ytDownloader:
 
         self.menubar = Menubar(self)
         self.statusbar = Statusbar(self)
+        self.set_values()
+
+    def set_values(self):
+        '''
+        setting values of label, messages and buttons
+        :return: None
+        '''
+        try:
+            self.title_var.set(self.lang.title)
+            self.d_descr_link.set(self.lang.title_entry)
+            self.d_lab_one.set(self.lang.one_line)
+            self.d_clear_button.set(self.lang.clear)
+            self.d_start_down_btn.set(self.lang.start_download)
+            self.d_stop_button.set(self.lang.stop_download)
+            self.d_lb_save_in.set(self.lang.save_title)
+            self.d_brownse_btn.set(self.lang.browse)
+        except AttributeError:
+            # at the moment do nothing
+            pass
 
     def clear_text(self):
         self.my_text.delete(1.0, END)
@@ -448,7 +541,7 @@ class ytDownloader:
 
     def stop_download(self):
         '''
-        stop download thread and reset all necesary values
+        stop download thread and reset all necessary values
         '''
         if not self.ThreadLauncher.stopped():
             self.ThreadLauncher.terminate()
@@ -456,14 +549,15 @@ class ytDownloader:
         # reset values
         self.global_downloading = False
         # set message download stopped
-        self.status_text.set('Download video stopped')
+        # get message on current lang
+        self.status_text.set(self.lang.down_videos_stopped)
         # hide stop button
-        self.stop_button1.grid_remove()
+        self.stop_button.grid_remove()
         return None
 
     def launch_down(self):
         if self.global_downloading:
-            messagebox.showinfo('Running', 'The downloader app is already running')
+            messagebox.showinfo(self.lang.running, self.lang.running_msg)
             return None
 
         self.ThreadLauncher = DownloaderThread(target=self.download)
@@ -479,7 +573,7 @@ class ytDownloader:
             self.where_save = self.save_path.get()
             self.my_progress.grid_remove()
             download_options = {
-                'outtmpl': f'{self.where_save}\%(title)s.%(ext)s',
+                'outtmpl': f'{self.where_save}\\%(title)s.%(ext)s',
                 'getfilename': '--get-filename',
                 '--get-filename': True,
                 'progress_hooks': [self.my_hook],
@@ -491,19 +585,19 @@ class ytDownloader:
             c_l = 0
             for v_l in list_down:
                 c_l += 1
-                if v_l.count('http') > 1:
-                    self.status_text.set(f"Url not valid at line: {c_l}")
-                    raise RuntimeError(f"Url not valid at line: {c_l}")
+                if v_l.count('http') > 1 or v_l.count('HTTP') > 1:
+                    # self.status_text.set(f"Url not valid at line: {c_l}")
+                    raise RuntimeError(f"{self.lang.url_invalid}: {c_l}")
 
             self.v_counter = len(list_down)
             # check if empty list
             if (self.v_counter == 0 or
                     (len(list_down) and list_down[0] == '')):
-                self.status_text.set("No videos to download")
+                self.status_text.set(self.lang.no_videos)
                 return None
             with youtube_dl.YoutubeDL(download_options) as dl:
                 self.my_progress.grid()
-                self.stop_button1.grid()
+                self.stop_button.grid()
                 self.global_downloading = True
                 for video_link in list_down:
                     if video_link == '':
@@ -511,9 +605,9 @@ class ytDownloader:
                     self.v_down += 1
                     dl.download([video_link])
                 self.status_text.set(
-                    f"All videos downloaded [{self.v_down}/{self.v_counter}]")
+                    f"{self.lang.all_downloaded} [{self.v_down}/{self.v_counter}]")
             self.global_downloading = False
-            self.stop_button1.grid_remove()
+            self.stop_button.grid_remove()
             # link.set("Video downloaded successfully")
         except RuntimeError as e:
             self.status_text.set(e)
@@ -522,7 +616,7 @@ class ytDownloader:
             self.status_text.set(e)
             self.global_downloading = False
             # hide stop button
-            self.stop_button1.grid_remove()
+            self.stop_button.grid_remove()
             print(e)
             pass
 
@@ -537,7 +631,7 @@ class ytDownloader:
             if not self.downloading:
                 self.my_text1.configure(state='normal')
                 self.my_text1.insert(
-                    'end', f"{self.v_down}) Start video download:"
+                    'end', f"{self.v_down}) {self.lang.starts_down_video}:"
                            f"\n{file_tuple[1]}\n")
                 self.my_text1.configure(state='disabled')
                 self.downloading = True
@@ -550,14 +644,14 @@ class ytDownloader:
                 self.my_progress['value'] = 100
                 self.downloading = False
                 self.my_text1.configure(state='normal')
-                self.my_text1.insert('end', f"{self.v_down}) Video Downloaded\n")
+                self.my_text1.insert('end', f"{self.v_down}) {self.lang.video_downloaded}\n")
                 self.my_text1.configure(state='disabled')
                 # self.percentage.config(
                 #    text=f"Downloaded... {self.my_progress['value']}%")
                 self.s.configure("LabeledProgressbar",
                                  text=f"{self.my_progress['value']} %      ")
                 self.status_text.set(
-                    f"Downloaded... [{self.v_down}/{self.v_counter}]")
+                    f"{self.lang.downloaded}... [{self.v_down}/{self.v_counter}]")
                 self.root.update_idletasks()
 
             if d['status'] == 'downloading':
@@ -568,12 +662,14 @@ class ytDownloader:
                 percentage = float(p)
                 self.my_progress['value'] = percentage
                 self.status_text.set(
-                    f"Downloading... [{self.v_down}/{self.v_counter}]")
+                    f"{self.lang.downloading}... [{self.v_down}/{self.v_counter}]")
                 self.s.configure("LabeledProgressbar",
                                  text=f"{self.my_progress['value']} %      ")
                 self.root.update_idletasks()
         except Exception as e:
+            self.status_text.set(e)
             print(e)
+            raise Exception(e)
 
 
 if __name__ == "__main__":
