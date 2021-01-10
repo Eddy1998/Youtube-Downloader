@@ -52,8 +52,12 @@ language = {
         'downloading': 'Downloading',
         'downloaded': 'Downloaded',
         'close_app': 'do you want to close the app?',
-        'exit': 'Exit'
-
+        'app': 'App',
+        'language': 'Language',
+        'about': 'About',
+        'exit': 'Exit',
+        'release_notes': 'Release Notes',
+        'version': 'Version'
     },
     'ESP': {
         'title': 'Welcome to Youtube Video Downloader App',
@@ -82,7 +86,13 @@ language = {
         'downloading': 'Descargando',
         'downloaded': 'Descargado',
         'close_app': 'quieres cerrar la aplicación?',
-        'exit': 'Cerrar'
+        'exit': 'Cerrar',
+        'app': 'App',
+        'language': 'Idioma',
+        'about': 'Acerca',
+        'release_notes': 'Notas de lanzamiento',
+        'version': 'Versión'
+
     },
     'PRT': {
         'title': 'Welcome to Youtube Video Downloader App',
@@ -111,7 +121,12 @@ language = {
         'downloading': 'Baixando',
         'downloaded': 'Baixado',
         'close_app': 'quer fechar o aplicativo?',
-        'exit': 'Fechar'
+        'exit': 'Fechar',
+        'app': 'App',
+        'language': 'Idioma',
+        'about': 'Sobre',
+        'release_notes': 'Notas de lançamento',
+        'version': 'Versão'
     },
     'ITA': {
         'title': 'Welcome to Youtube Video Downloader App',
@@ -140,7 +155,13 @@ language = {
         'downloading': 'Scaricando',
         'downloaded': 'Scaricato',
         'close_app': 'vuoi chiudere l''app?',
-        'exit': 'Chiudi'
+        'exit': 'Chiudi',
+        'app': 'App',
+        'language': 'Lingua',
+        'about': 'About',
+        'release_notes': 'Note di Rilascio',
+        'version': 'Versione'
+
     }
 
 }
@@ -256,42 +277,50 @@ class Menubar:
         font_specs = ('consolas', 11)
 
         self.menubar = tk.Menu(parent.root, font=font_specs)
-        parent.root.config(menu=self.menubar)
+        self.parent = parent
+        self.parent.root.config(menu=self.menubar)
 
-        file_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
+        self.app_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
         # file_dropdown.add_separator()
-        file_dropdown.add_command(label='Esci',
-                                  command=parent.prevent_close)
 
-        about_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
-        about_dropdown.add_command(label="Note di Rilascio",
-                                   command=self.show_release_notes)
-        about_dropdown.add_separator()
-        about_dropdown.add_command(label="About",
-                                   command=self.show_about_message)
-        language_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
-        language_dropdown.add_command(label="English",
-                                      command=lambda: parent.change_language('ENG'))
-        language_dropdown.add_command(label="Spanish",
-                                      command=lambda: parent.change_language('ESP'))
-        language_dropdown.add_command(label="Italian",
-                                      command=lambda: parent.change_language('ITA'))
-        language_dropdown.add_command(label="Portuguese",
-                                      command=lambda: parent.change_language('PRT'))
+        self.app_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
+        # index 1
+        self.app_dropdown.add_command(label="Note di Rilascio",
+                                      command=self.show_release_notes)
+        # index 2
+        self.app_dropdown.add_command(label="About",
+                                      command=self.show_about_message)
+        self.app_dropdown.add_separator()
+        # index 3
+        self.app_dropdown.add_command(label='Esci',
+                                      command=self.parent.prevent_close)
+        self.language_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
+        self.language_dropdown.add_command(label="English",
+                                           command=lambda: self.parent.change_language('ENG'))
+        self.language_dropdown.add_command(label="Español",
+                                           command=lambda: self.parent.change_language('ESP'))
+        self.language_dropdown.add_command(label="Italiano",
+                                           command=lambda: self.parent.change_language('ITA'))
+        self.language_dropdown.add_command(label="Português",
+                                           command=lambda: self.parent.change_language('PRT'))
 
-        self.menubar.add_cascade(label="App", menu=file_dropdown)
-        self.menubar.add_cascade(label="Language", menu=language_dropdown)
-        self.menubar.add_cascade(label="About", menu=about_dropdown)
+        # index 1
+        self.menubar.add_cascade(label="App", menu=self.app_dropdown)
+        # index 2
+        self.menubar.add_cascade(label="Language", menu=self.language_dropdown)
 
-        # set with default langugae pass by parent
+        # set with default language pass by parent
         self.set_language()
 
     def set_language(self):
-        self.menubar.entryconfigure(1, label="Clicked!")
-        op_esci = 'uscita'
+        # changing language of menu bar
+        self.menubar.entryconfigure(1, label=self.parent.lang.app)
+        self.menubar.entryconfigure(2, label=self.parent.lang.language)
 
-
-
+        # app about dropdown
+        self.app_dropdown.entryconfigure(0, label=self.parent.lang.release_notes)
+        self.app_dropdown.entryconfigure(1, label=self.parent.lang.about)
+        self.app_dropdown.entryconfigure(3, label=self.parent.lang.exit)
 
     @staticmethod
     def show_about_message():
@@ -299,10 +328,9 @@ class Menubar:
         box_message = "Youtube Video Downloader using Tkinter and Python"
         messagebox.showinfo(box_title, box_message)
 
-    @staticmethod
-    def show_release_notes():
-        box_title = "Reselase Notes"
-        box_message = f"Version {VERSION} - EA"
+    def show_release_notes(self):
+        box_title = f"{self.parent.lang.release_notes}"
+        box_message = f"{self.parent.lang.version} {VERSION} - EA"
         messagebox.showinfo(box_title, box_message)
 
 
@@ -356,6 +384,8 @@ class ytDownloader:
     def change_language(self, _language):
         self.lang.set_language(_language)
         self.set_values()
+        # changing language menubar
+        self.menubar.set_language()
         self.root.update_idletasks()
 
     def prevent_close(self):
@@ -588,6 +618,7 @@ class ytDownloader:
             self.where_save = self.save_path.get()
             self.my_progress.grid_remove()
             download_options = {
+                'format': 'bestvideo+bestaudio/best',
                 'outtmpl': f'{self.where_save}\\%(title)s.%(ext)s',
                 'getfilename': '--get-filename',
                 '--get-filename': True,
@@ -688,6 +719,7 @@ class ytDownloader:
 
 
 if __name__ == "__main__":
+    print(os.getcwd())
     root = tk.Tk()
     pt = ytDownloader(root)
     root.mainloop()
