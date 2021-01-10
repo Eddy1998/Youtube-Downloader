@@ -21,7 +21,7 @@ from tkinter.ttk import Style
 from tkinter import filedialog
 from tkinter import messagebox
 
-VERSION = '0.1'
+VERSION = '0.2'
 
 # dictionaries with all languages available
 language = {
@@ -51,7 +51,8 @@ language = {
         'video_downloaded': 'Video downloaded',
         'downloading': 'Downloading',
         'downloaded': 'Downloaded',
-        'close_app': 'do you want to close the app?'
+        'close_app': 'do you want to close the app?',
+        'exit': 'Exit'
 
     },
     'ESP': {
@@ -80,7 +81,8 @@ language = {
         'video_downloaded': 'Video descargado',
         'downloading': 'Descargando',
         'downloaded': 'Descargado',
-        'close_app': 'quieres cerrar la aplicación?'
+        'close_app': 'quieres cerrar la aplicación?',
+        'exit': 'Cerrar'
     },
     'PRT': {
         'title': 'Welcome to Youtube Video Downloader App',
@@ -108,7 +110,8 @@ language = {
         'video_downloaded': 'Vídeo baixado',
         'downloading': 'Baixando',
         'downloaded': 'Baixado',
-        'close_app': 'quer fechar o aplicativo?'
+        'close_app': 'quer fechar o aplicativo?',
+        'exit': 'Fechar'
     },
     'ITA': {
         'title': 'Welcome to Youtube Video Downloader App',
@@ -136,7 +139,8 @@ language = {
         'video_downloaded': 'Video scaricato',
         'downloading': 'Scaricando',
         'downloaded': 'Scaricato',
-        'close_app': 'vuoi chiudere l''app?'
+        'close_app': 'vuoi chiudere l''app?',
+        'exit': 'Chiudi'
     }
 
 }
@@ -251,21 +255,21 @@ class Menubar:
     def __init__(self, parent):
         font_specs = ('consolas', 11)
 
-        menubar = tk.Menu(parent.root, font=font_specs)
-        parent.root.config(menu=menubar)
+        self.menubar = tk.Menu(parent.root, font=font_specs)
+        parent.root.config(menu=self.menubar)
 
-        file_dropdown = tk.Menu(menubar, font=font_specs, tearoff=0)
+        file_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
         # file_dropdown.add_separator()
-        file_dropdown.add_command(label="Esci",
+        file_dropdown.add_command(label='Esci',
                                   command=parent.prevent_close)
 
-        about_dropdown = tk.Menu(menubar, font=font_specs, tearoff=0)
+        about_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
         about_dropdown.add_command(label="Note di Rilascio",
                                    command=self.show_release_notes)
         about_dropdown.add_separator()
         about_dropdown.add_command(label="About",
                                    command=self.show_about_message)
-        language_dropdown = tk.Menu(menubar, font=font_specs, tearoff=0)
+        language_dropdown = tk.Menu(self.menubar, font=font_specs, tearoff=0)
         language_dropdown.add_command(label="English",
                                       command=lambda: parent.change_language('ENG'))
         language_dropdown.add_command(label="Spanish",
@@ -275,9 +279,19 @@ class Menubar:
         language_dropdown.add_command(label="Portuguese",
                                       command=lambda: parent.change_language('PRT'))
 
-        menubar.add_cascade(label="App", menu=file_dropdown)
-        menubar.add_cascade(label="Language", menu=language_dropdown)
-        menubar.add_cascade(label="About", menu=about_dropdown)
+        self.menubar.add_cascade(label="App", menu=file_dropdown)
+        self.menubar.add_cascade(label="Language", menu=language_dropdown)
+        self.menubar.add_cascade(label="About", menu=about_dropdown)
+
+        # set with default langugae pass by parent
+        self.set_language()
+
+    def set_language(self):
+        self.menubar.entryconfigure(1, label="Clicked!")
+        op_esci = 'uscita'
+
+
+
 
     @staticmethod
     def show_about_message():
@@ -323,6 +337,7 @@ class ytDownloader:
         self.selected_language = 'ENG'
         self.lang = Translator(language)
         self.root.geometry("960x320")
+
         self.root.title("Yt Video Downloader")
         # self.root.title(self.lang.title)
         self.root.resizable(False, False)
