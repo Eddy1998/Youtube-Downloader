@@ -1,9 +1,20 @@
 #!/usr/cbin/env python3
-'''
+"""
 Created on 11 dic 2020
 
 @author: Eddy
-'''
+for audio and video conversion is necessary the ffmpeg,
+ffprobe and ffplay1 on the same path of this script, that you can download in:
+http://web.archive.org/web/20200917010927/https://ffmpeg.zeranoe.com/builds/
+Download the zip and extract the .exe files like this:
+
+ folder/
+    -downloader.py
+    -ffmpeg.exe
+    -ffmprobe.exe
+    -ffplay1
+
+"""
 from __future__ import unicode_literals
 import os
 import time
@@ -364,7 +375,7 @@ class ytDownloader:
         self.root = _root
         self.selected_language = 'ENG'
         self.lang = Translator(language)
-        self.root.geometry("960x320")
+        self.root.geometry("960x360")
 
         self.root.title("Yt Video Downloader")
         # self.root.title(self.lang.title)
@@ -460,7 +471,7 @@ class ytDownloader:
             self.root, textvariable=self.d_lab_one, font="Consolas 10")
         self.lab_one.grid(row=2, column=0)
 
-        # frame for text wher put the links
+        # frame for text where put the links
         self.my_frame = Frame(self.root)
         self.my_scroll = Scrollbar(self.my_frame, orient=VERTICAL)
         self.my_text = Text(
@@ -518,10 +529,22 @@ class ytDownloader:
             command=self.browse_button)
         self.browse_btn.grid(row=0, column=1)
 
+        # format file option
+        # options frame
+        self.option_format = IntVar()
+        self.option_buttons = Frame(self.root)
+        self.option_buttons.grid(row=5, column=0, sticky='w', padx=10)
+        self.R1 = Radiobutton(self.option_buttons, text="Video", variable=self.option_format, value=1)
+        self.R1.grid(row=0, column=1)
+        self.R2 = Radiobutton(self.option_buttons, text="Audio", variable=self.option_format, value=2)
+        self.R2.grid(row=0, column=2)
+        # set value on audio
+        self.option_format.set(2)
+
         # adding status frame
         self.status_frame = Frame(self.root, bd=1, relief=SUNKEN)
         self.status_frame.grid(
-            row=5, column=0, columnspan=3, sticky=W + E, pady=(20, 0))
+            row=6, column=0, columnspan=3, sticky=W + E, pady=(20, 0))
 
         Label(
             self.status_frame, text="EA Yt Downloader",
@@ -615,15 +638,33 @@ class ytDownloader:
             # reset counters
             self.reset_values()
             # global v_counter, v_down
+            format_video = ''
+            if self.option_format.get() == 1:
+                # video
+                format_video = 'bestvideo+bestaudio/best'
+            elif self.option_format.get() == 2:
+                # audio
+                format_video = 'bestaudio/best'
+            else:
+                raise RuntimeError("Opzione formato di download non selezionato")
             self.where_save = self.save_path.get()
             self.my_progress.grid_remove()
+            # default for audio format
+            for_audio = {'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }]}
             download_options = {
-                'format': 'bestvideo+bestaudio/best',
+                'format': f'{format_video}',
                 'outtmpl': f'{self.where_save}\\%(title)s.%(ext)s',
                 'getfilename': '--get-filename',
                 '--get-filename': True,
                 'progress_hooks': [self.my_hook],
             }
+            if self.option_format.get() == 2:
+                download_options.update(for_audio)
+
             list_links = self.my_text.get(1.0, END)
             list_down = list_links.splitlines()
             list_down = [line.rstrip('\n') for line in list_down]
