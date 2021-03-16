@@ -375,7 +375,7 @@ class ytDownloader:
         self.root = _root
         self.selected_language = 'ENG'
         self.lang = Translator(language)
-        self.root.geometry("960x360")
+        self.root.geometry("960x346")
 
         self.root.title("Yt Video Downloader")
         # self.root.title(self.lang.title)
